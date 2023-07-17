@@ -1,5 +1,6 @@
 const userSchema = require("../model/userSchema")
 const emailValidator = require('email-validator')
+const bcrypt = require('bcrypt')
 const signup = async (req,res)=>{
     const {name,email,password,confirmPassword} = req.body
     console.log(name,email,password,confirmPassword)
@@ -18,12 +19,13 @@ const signup = async (req,res)=>{
             message:'Please provide a valid email id'
         })
     }
-    if(password!==confirmPassword){
+    if(!user || bcrypt.compare(password,user.password)){
         return res.status(400).json({
             success:false,
             message:'Password and confirmpassword doesnt match'
         })
     }
+    
     try {
         
         const userInfo = userSchema(req.body)
@@ -112,9 +114,28 @@ const getUser=async(req,res)=>{
         })
     }
 }
+const logout = (req,res)=>{
+    try {
+        const cookieOption = {
+            expired: new Date(),
+            httpOnly:true
+        }
+        req.cookie("token",null,cookieOption)
+        return res.status(200).json({
+            success:true,
+            message:"Logged out"
+        })
+    } catch (error) {
+        res.status(401).json({
+            success:false,
+
+        })
+    }
+}
 
 module.exports={
     signup,
     signin,
-    getUser
+    getUser,
+    logout
 }

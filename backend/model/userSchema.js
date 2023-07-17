@@ -1,5 +1,7 @@
 const mongoose = require('mongoose')
 const JWT = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
+
 const userSchema = new mongoose.Schema({
     name:{
         type:String,
@@ -28,7 +30,13 @@ const userSchema = new mongoose.Schema({
 },{
     timestamps:true
 });
-
+userSchema.pre("save", async(next)=>{
+    if(!this.ismodified('password')){
+        return next()
+    }
+    this.password = await bcrypt.hash(this.password,10)
+    return next()
+})
 userSchema.methods={
     // to define a cookie
     jwtToken(){
